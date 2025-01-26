@@ -23,14 +23,11 @@ const app = new Elysia()
         return settingsRepository.getSettings(userId);
       })
       .post(
-        "/settings/",
-        ({ body }) =>
-          settingsRepository.updateSettings(body.userId, body.settings),
+        "/settings/:userId",
+        ({ params, body }) =>
+          settingsRepository.updateSettings(params.userId, body),
         {
-          body: t.Object({
-            userId: t.String(),
-            settings: t.Record(t.String(), t.Any(), { minProperties: 1 }),
-          }),
+          body: t.Record(t.String(), t.Any(), { minProperties: 1 }),
         }
       )
   )
