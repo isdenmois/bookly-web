@@ -10,15 +10,19 @@ await migrate(db, { migrationsFolder: "./drizzle" });
 
 const port = +(process.env.PORT || 3000);
 
-const app = new Elysia()
-  .use(swagger())
-  .get("/", () => "Hello Elysia")
-  .group("/api", (api) =>
+const usersApi = new Elysia()
+  .group("/v1", (api) =>
     api
       .get("/user/:id", ({ params: { id } }) => usersRepository.isUserExist(id))
       .post("/user", ({ body }) => usersRepository.createUser(body.id), {
         body: t.Object({ id: t.String({ minLength: 3 }) }),
       })
+  )
+  .group("/v2", (api) => api);
+
+const settingsApi = new Elysia()
+  .group("/v1", (api) =>
+    api
       .get("/settings/:userId", ({ params: { userId } }) => {
         return settingsRepository.getSettings(userId);
       })
@@ -31,6 +35,12 @@ const app = new Elysia()
         }
       )
   )
+  .group("/v2", (api) => api);
+
+const app = new Elysia()
+  .use(swagger())
+  .get("/", () => "Hello Elysia")
+  .group("/api", (api) => api.use(usersApi).use(settingsApi))
   .listen(port);
 
 console.log(
